@@ -1,17 +1,34 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+const functions = require('firebase-functions');
+const Filter = require('bad-words');
+const admin = require('firebase-admin');
+admin.initializeApp();
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+const db = admin.firestore();
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+exports.detectEvilUsers = functions.firestore
+       .document('messages/{msgId}')
+       .onCreate(async (doc, ctx) => {
+
+        const filter = new Filter();
+        const { text, uid } = doc.data(); 
+
+
+        if (filter.isProfane(text)) {
+
+            const cleaned = filter.clean(text);
+            await doc.ref.update({text: `🤐 I got BANNED for life for saying... ${cleaned}`});
+
+            await db.collection('banned').doc(uid).set({});
+        } 
+
+        const userRef = db.collection('users').doc(uid)
+
+        const userData = (await userRef.get()).data();
+
+        if (userData.msgCount >= 7) {
+            await db.collection('banned').doc(uid).set({});
+        } else {
+            await userRef.set({ msgCount: (userData.msgCount || 0) + 1 })
+        }
+
+});
