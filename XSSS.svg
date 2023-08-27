@@ -1,4 +1,4 @@
-<svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg">
+<svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg" onload="alert(1)">
    <polygon id="triangle" points="0,0 0,600 600,0" fill="#009900" stroke="alert(document.cookie);"/>
    <script type="text/javascript">
       alert(document.cookie);
